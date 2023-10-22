@@ -1,4 +1,10 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  NotAcceptableException,
+} from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import { CreateOrganizationDto } from './dto/create-orginization.dto';
 
@@ -7,11 +13,12 @@ export class OrganizationController {
   constructor(private orgService: OrganizationService) {}
   @Get()
   async findAll() {
-    await this.orgService.findAll();
+    return await this.orgService.findAll();
   }
 
   @Post()
   async add(@Body() createOrgDto: CreateOrganizationDto) {
-    await this.orgService.add(createOrgDto);
+    const org = await this.orgService.add(createOrgDto);
+    if (!org) throw new NotAcceptableException('Add organization fail');
   }
 }

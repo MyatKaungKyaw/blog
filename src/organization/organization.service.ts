@@ -12,10 +12,53 @@ export class OrganizationService {
   ) {}
 
   async findAll() {
-    return await this.orgRepository.find();
+    try {
+      return await this.orgRepository.find();
+    } catch (error: unknown) {
+      let err: string;
+
+      if (typeof error === 'string') {
+        err = error.toUpperCase();
+      } else if (error instanceof Error) {
+        err = error.message;
+      }
+
+      console.error(`Error in organization service's findAll function`);
+      console.error(err);
+    }
   }
 
   async add(org: CreateOrganizationDto) {
-    await this.orgRepository.save(org);
+    try {
+      return await this.orgRepository.save(org);
+    } catch (error: unknown) {
+      let err: string;
+
+      if (typeof error === 'string') {
+        err = error.toUpperCase();
+      } else if (error instanceof Error) {
+        err = error.message;
+      }
+
+      console.error(`Error in organization service's add function`);
+      console.error(err);
+    }
+  }
+
+  async findOne(orgName: string) {
+    try {
+      return await this.orgRepository.findOneBy({ name: orgName });
+    } catch (error: unknown) {
+      let err: string;
+
+      if (typeof error === 'string') {
+        err = error.toUpperCase();
+      } else if (error instanceof Error) {
+        err = error.message;
+      }
+
+      console.error(`Error in organization service's findOne function`);
+      console.error(err);
+    }
   }
 }
