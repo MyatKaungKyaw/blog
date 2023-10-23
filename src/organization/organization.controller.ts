@@ -7,7 +7,9 @@ import {
 } from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import { CreateOrganizationDto } from './dto/create-orginization.dto';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiBearerAuth()
 @Controller('organization')
 export class OrganizationController {
   constructor(private orgService: OrganizationService) {}
