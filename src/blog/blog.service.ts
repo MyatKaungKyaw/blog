@@ -2,7 +2,6 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Blog } from './entities/blog.entity';
-import { OrganizationService } from 'src/organization/organization.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UserService } from 'src/user/user.service';
 import { BlogResponseDto } from './dto/blog-response.dto';
@@ -14,13 +13,13 @@ export class BlogService {
   constructor(
     @InjectRepository(Blog)
     private blogRepository: Repository<Blog>,
-    private orgService: OrganizationService,
     private userService: UserService,
   ) {}
 
   async add(blogDto: CreateBlogDto, userName: string) {
     try {
-      const { user, organization } = await this.getUserAndOrg(userName);
+      const user = await this.userService.findOne(userName);
+      const organization = user.organization;
 
       const blog = await this.blogRepository.save({
         ...blogDto,
@@ -45,7 +44,8 @@ export class BlogService {
 
   async findAll(userName: string) {
     try {
-      const { organization } = await this.getUserAndOrg(userName);
+      const organization = (await this.userService.findOne(userName))
+        .organization;
 
       const blogs = await this.blogRepository.find({
         where: { organization },
@@ -67,7 +67,7 @@ export class BlogService {
     }
   }
 
-  async edit(blogDto: EditBlogDto) {
+  async update(blogDto: EditBlogDto, reqUser: UserType) {
     try {
       return await this.blogRepository.update(blogDto.id, { ...blogDto });
     } catch (error: unknown) {
@@ -79,32 +79,24 @@ export class BlogService {
         err = error.message;
       }
 
-      console.error(`Error in blog service's edit function`);
+      console.error(`Error in blog service's update function`);
       console.error(err);
     }
   }
 
   async delete(id: string, reqUser: UserType) {
-    const blog = await this.blogRepository.findOne({
-      where: { id },
-      relations: { user: true, organization: true },
-    });
-
-    const { user, organization } = await this.getUserAndOrg(reqUser.name);
-    if (user.id !== blog.user.id)
-      throw new UnauthorizedException(`user can only delete it's own blog`);
-
-    await this.blogRepository.delete(blog.id);
-  }
-
-  private async getUserAndOrg(userName: string) {
     try {
-      const user = await this.userService.findOne(userName);
-      const organization = await this.orgService.findOne(
-        user.organization.name,
-      );
+      const blog = await this.blogRepository.findOne({
+        where: { id },
+        relations: { user: true, organization: true },
+      });
 
-      return { user, organization };
+      const user = await this.userService.findOne(reqUser.name);
+
+      if (user.id !== blog.user.id)
+        throw new UnauthorizedException(`user can only delete it's own blog`);
+
+      await this.blogRepository.delete(blog.id);
     } catch (error: unknown) {
       let err: string;
 
@@ -114,7 +106,7 @@ export class BlogService {
         err = error.message;
       }
 
-      console.error(`Error in blog service's getUserAndOrg function`);
+      console.error(`Error in blog service's delete function`);
       console.error(err);
     }
   }
