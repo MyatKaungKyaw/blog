@@ -2,12 +2,12 @@ import {
   Controller,
   Post,
   Body,
-  Req,
   Put,
-  NotAcceptableException,
+  Get,
+  Delete,
+  Param,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { Request } from 'express';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { EditBlogDto } from './dto/edit-blog.dto';
 import { BlogService } from './blog.service';
@@ -24,5 +24,17 @@ export class BlogController {
   }
 
   @Put()
-  async edit(@Body() blogDto: EditBlogDto) {}
+  async update(@Body() blogDto: EditBlogDto, @User() user: UserType) {
+    return await this.blogService.update(blogDto, user);
+  }
+
+  @Get()
+  async getAll(@User() user: UserType) {
+    return await this.blogService.findAll(user.name);
+  }
+
+  @Delete(':userId')
+  async delete(@Param('userId') userId: string, @User() user: UserType) {
+    await this.blogService.delete(userId, user);
+  }
 }
