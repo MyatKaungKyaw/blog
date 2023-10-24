@@ -9,10 +9,10 @@ export class UserResponstDto {
     this.role = Object.keys(Role)[
       Object.values(Role).indexOf(user.role)
     ] as RoleString;
-    user.organization && (this.organization = user.organization.name);
+    this.organization = user.organization.name;
   }
 
   name: string;
   role: RoleString;
-  organization?: string;
+  organization: string;
 }

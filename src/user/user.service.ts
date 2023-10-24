@@ -44,9 +44,14 @@ export class UserService {
 
   async findOne(name?: string, role?: Role) {
     try {
-      return await this.userRepository.findOneBy({
-        ...(name && { name }),
-        ...(role && { role }),
+      return await this.userRepository.findOne({
+        where: {
+          ...(name && { name }),
+          ...(role && { role }),
+        },
+        relations: {
+          organization: true,
+        },
       });
     } catch (error: unknown) {
       let err: string;
@@ -69,7 +74,6 @@ export class UserService {
           organization: true,
         },
       });
-      console.log(users);
       return users.map((user) => new UserResponstDto(user));
     } catch (error: unknown) {
       let err: string;

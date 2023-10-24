@@ -23,6 +23,6 @@ export class User {
   @Column({ type: 'enum', enum: Role, nullable: false })
   role: Role;
 
-  @ManyToOne(() => Organization, { nullable: true })
-  organization?: Organization;
+  @ManyToOne(() => Organization, { nullable: false })
+  organization: Organization;
 }
