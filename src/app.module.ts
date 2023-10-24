@@ -5,6 +5,7 @@ import { configService } from './config/config.service';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { SuperUserModule } from './super-user/super-user.module';
+import { BlogModule } from './blog/blog.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { SuperUserModule } from './super-user/super-user.module';
     UserModule,
     AuthModule,
     SuperUserModule,
+    BlogModule,
   ],
 })
 export class AppModule {}
