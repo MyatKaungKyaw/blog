@@ -7,6 +7,7 @@ import { UserService } from 'src/user/user.service';
 import { BlogResponseDto } from './dto/blog-response.dto';
 import { EditBlogDto } from './dto/edit-blog.dto';
 import { UserType } from 'src/user/user.decorator';
+import { Role } from 'src/role/enums/role.enum';
 
 @Injectable()
 export class BlogService {
@@ -67,13 +68,19 @@ export class BlogService {
     }
   }
 
-  async update(blogId: string, blogDto: EditBlogDto, reqUser: UserType) {
+  async update(id: string, blogDto: EditBlogDto, reqUser: UserType) {
     try {
-      const updateResult = await this.blogRepository.update(blogId, {
-        ...blogDto,
-      });
+      const isReqAuthenticated = await this.isReqAuthenticated(id, reqUser);
 
-      return updateResult.affected === 1 ? true : false;
+      if (isReqAuthenticated) {
+        const updateResult = await this.blogRepository.update(id, {
+          ...blogDto,
+        });
+
+        return updateResult.affected === 1 ? true : false;
+      }
+
+      throw new UnauthorizedException('Uunauthorized update');
     } catch (error: unknown) {
       let err: string;
 
@@ -90,19 +97,15 @@ export class BlogService {
 
   async delete(id: string, reqUser: UserType) {
     try {
-      const blog = await this.blogRepository.findOne({
-        where: { id },
-        relations: { user: true, organization: true },
-      });
+      const isReqAuthenticated = await this.isReqAuthenticated(id, reqUser);
 
-      const user = await this.userService.findOne(reqUser.name);
+      if (isReqAuthenticated) {
+        const deleteResult = await this.blogRepository.delete(id);
 
-      if (user.id !== blog.user.id)
-        throw new UnauthorizedException(`user can only delete it's own blog`);
+        return deleteResult.affected === 1 ? true : false;
+      }
 
-      const deleteResult = await this.blogRepository.delete(blog.id);
-
-      return deleteResult.affected === 1 ? true : false;
+      throw new UnauthorizedException('Uunauthorized update');
     } catch (error: unknown) {
       let err: string;
 
@@ -115,5 +118,30 @@ export class BlogService {
       console.error(`Error in blog service's delete function`);
       console.error(err);
     }
+  }
+
+  private async isReqAuthenticated(
+    id: string,
+    reqUser: UserType,
+  ): Promise<boolean> {
+    const user = await this.userService.findOne(reqUser.name);
+    const blog = await this.blogRepository.findOne({
+      where: { id },
+      relations: { user: true, organization: true },
+    });
+
+    const isUserAuthenticate =
+      user.role === Role.USER && user.id === blog.user.id;
+
+    const isAdminAuthenticate =
+      reqUser.role === Role.ADMIN &&
+      user.organization.id === blog.organization.id;
+
+    const isSuperUserAuthenticate = reqUser.role === Role.SUPER_USER;
+
+    if (isUserAuthenticate || isAdminAuthenticate || isSuperUserAuthenticate) {
+      return true;
+    }
+    return false;
   }
 }

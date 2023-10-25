@@ -23,7 +23,7 @@ export class AuthService {
       throw new NotFoundException('name or password incorrect.');
     }
 
-    const payload = { name: user.name, id: user.id };
+    const payload = { name: user.name, id: user.id, role: user.role };
 
     return new LogInResponseDto(user, await this.jwtService.signAsync(payload));
   }

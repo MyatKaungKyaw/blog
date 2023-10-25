@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotAcceptableException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/user.dto';
 import * as bcrypt from 'bcrypt';
 import { OrganizationService } from 'src/organization/organization.service';
@@ -20,6 +20,11 @@ export class UserService {
     try {
       const hash = await bcrypt.hash(user.password, 12);
       const organization = await this.orgService.findOne(user.organization);
+
+      if (organization.name === 'admin')
+        throw new NotAcceptableException(
+          'Cannot create user with admin organization',
+        );
 
       const userWithHash = {
         ...user,
@@ -69,7 +74,12 @@ export class UserService {
 
   async findAll() {
     try {
+      const adminOrg = await this.orgService.findOne('admin');
+
       const users = await this.userRepository.find({
+        where: {
+          organization: Not(adminOrg.id),
+        },
         relations: {
           organization: true,
         },
