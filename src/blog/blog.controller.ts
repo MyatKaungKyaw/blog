@@ -6,6 +6,7 @@ import {
   Get,
   Delete,
   Param,
+  ConflictException,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { CreateBlogDto } from './dto/create-blog.dto';
@@ -23,9 +24,14 @@ export class BlogController {
     return await this.blogService.add(blogDto, user.name);
   }
 
-  @Put()
-  async update(@Body() blogDto: EditBlogDto, @User() user: UserType) {
-    return await this.blogService.update(blogDto, user);
+  @Put(':blogId')
+  async update(
+    @Param('blogId') blogId: string,
+    @Body() blogDto: EditBlogDto,
+    @User() user: UserType,
+  ) {
+    const isSuccess = await this.blogService.update(blogId, blogDto, user);
+    if (!isSuccess) throw new ConflictException('blog edit fail');
   }
 
   @Get()
@@ -33,8 +39,9 @@ export class BlogController {
     return await this.blogService.findAll(user.name);
   }
 
-  @Delete(':userId')
-  async delete(@Param('userId') userId: string, @User() user: UserType) {
-    await this.blogService.delete(userId, user);
+  @Delete(':blogId')
+  async delete(@Param('blogId') blogId: string, @User() user: UserType) {
+    const isSuccess = this.blogService.delete(blogId, user);
+    if (!isSuccess) throw new ConflictException('blog delete fail');
   }
 }

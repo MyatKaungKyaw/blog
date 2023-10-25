@@ -67,9 +67,13 @@ export class BlogService {
     }
   }
 
-  async update(blogDto: EditBlogDto, reqUser: UserType) {
+  async update(blogId: string, blogDto: EditBlogDto, reqUser: UserType) {
     try {
-      return await this.blogRepository.update(blogDto.id, { ...blogDto });
+      const updateResult = await this.blogRepository.update(blogId, {
+        ...blogDto,
+      });
+
+      return updateResult.affected === 1 ? true : false;
     } catch (error: unknown) {
       let err: string;
 
@@ -96,7 +100,9 @@ export class BlogService {
       if (user.id !== blog.user.id)
         throw new UnauthorizedException(`user can only delete it's own blog`);
 
-      await this.blogRepository.delete(blog.id);
+      const deleteResult = await this.blogRepository.delete(blog.id);
+
+      return deleteResult.affected === 1 ? true : false;
     } catch (error: unknown) {
       let err: string;
 
