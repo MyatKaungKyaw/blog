@@ -8,7 +8,10 @@ import {
 import { CreateUserDto } from './dto/user.dto';
 import { UserService } from './user.service';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { Roles } from 'src/role/role.decorator';
+import { Role } from 'src/role/enums/role.enum';
 
+@Roles(Role.SUPER_USER)
 @ApiBearerAuth()
 @Controller('user')
 export class UserController {

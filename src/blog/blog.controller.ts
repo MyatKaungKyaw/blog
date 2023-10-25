@@ -13,7 +13,10 @@ import { CreateBlogDto } from './dto/create-blog.dto';
 import { EditBlogDto } from './dto/edit-blog.dto';
 import { BlogService } from './blog.service';
 import { User, UserType } from 'src/user/user.decorator';
+import { Role } from 'src/role/enums/role.enum';
+import { Roles } from 'src/role/role.decorator';
 
+@Roles(Role.ADMIN, Role.USER, Role.SUPER_USER)
 @ApiBearerAuth()
 @Controller('blog')
 export class BlogController {

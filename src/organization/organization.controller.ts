@@ -8,7 +8,10 @@ import {
 import { OrganizationService } from './organization.service';
 import { CreateOrganizationDto } from './dto/create-orginization.dto';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { Roles } from 'src/role/role.decorator';
+import { Role } from 'src/role/enums/role.enum';
 
+@Roles(Role.SUPER_USER)
 @ApiBearerAuth()
 @Controller('organization')
 export class OrganizationController {
