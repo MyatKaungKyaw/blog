@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Organization } from './entities/organization.entity';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { CreateOrganizationDto } from './dto/create-orginization.dto';
 
 @Injectable()
@@ -13,7 +13,7 @@ export class OrganizationService {
 
   async findAll() {
     try {
-      return await this.orgRepository.find();
+      return await this.orgRepository.findBy({ name: Not('admin') });
     } catch (error: unknown) {
       let err: string;
 
