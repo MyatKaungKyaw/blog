@@ -20,6 +20,9 @@ export class User {
   @Column({ nullable: false })
   passwordHash: string;
 
+  @Column()
+  refreshToken: string;
+
   @Column({ type: 'enum', enum: Role, nullable: false })
   role: Role;
 

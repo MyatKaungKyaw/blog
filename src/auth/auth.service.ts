@@ -1,30 +1,62 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { LogInDto } from './dto/log-in.dto';
 import { UserService } from 'src/user/user.service';
 import * as bcrypt from 'bcrypt';
-import { LogInResponseDto } from './dto/log-in-response.dto';
-import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private userService: UserService,
-    private jwtService: JwtService,
-  ) {}
+  constructor(private userService: UserService) {}
 
   async login(loginDto: LogInDto) {
-    const user = await this.userService.findOne(loginDto.name);
-    const passwordCorrect =
-      user === null
-        ? false
-        : await bcrypt.compare(loginDto.password, user.passwordHash);
+    try {
+      const user = await this.userService.findOne(loginDto.name);
+      const passwordCorrect =
+        user === null
+          ? false
+          : await bcrypt.compare(loginDto.password, user.passwordHash);
 
-    if (!passwordCorrect) {
-      throw new NotFoundException('name or password incorrect.');
+      if (!passwordCorrect) {
+        throw new NotFoundException('name or password incorrect.');
+      }
+
+      const tokens = await this.userService.getTokens(
+        user.id,
+        user.name,
+        user.role,
+      );
+
+      const updateRefreshToken = await this.userService.updateRefreshToken(
+        user.id,
+        tokens.refreshToken,
+      );
+
+      if (!updateRefreshToken)
+        throw new ConflictException('update refresh token fail');
+
+      return tokens;
+    } catch (error: unknown) {
+      let err: string;
+
+      if (typeof error === 'string') {
+        err = error.toUpperCase();
+      } else if (error instanceof Error) {
+        err = error.message;
+      }
+
+      console.error(`Error in auth service's login function`);
+      console.error(err);
     }
+  }
 
-    const payload = { name: user.name, id: user.id, role: user.role };
+  async refreshToken(id: string, refreshToken: string) {
+    return await this.userService.refreshTokens(id, refreshToken);
+  }
 
-    return new LogInResponseDto(user, await this.jwtService.signAsync(payload));
+  async logOut(id: string) {
+    await this.userService.logOut(id);
   }
 }

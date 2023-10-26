@@ -24,6 +24,7 @@ export class BlogController {
 
   @Post()
   async add(@Body() blogDto: CreateBlogDto, @User() user: UserType) {
+    console.log(user);
     return await this.blogService.add(blogDto, user.name);
   }
 

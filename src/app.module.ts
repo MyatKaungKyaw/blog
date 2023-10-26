@@ -7,10 +7,12 @@ import { AuthModule } from './auth/auth.module';
 import { SuperUserModule } from './super-user/super-user.module';
 import { BlogModule } from './blog/blog.module';
 import { RoleModule } from './role/role.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(configService()),
+    ConfigModule.forRoot({ isGlobal: true }),
     OrganizationModule,
     UserModule,
     AuthModule,
