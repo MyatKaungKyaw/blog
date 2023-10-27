@@ -162,8 +162,8 @@ export class UserService {
         throw new ForbiddenException('Access Denied');
 
       const refreshTokenMatches = await bcrypt.compare(
-        user.refreshToken,
         refreshToken,
+        user.refreshToken,
       );
 
       if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
